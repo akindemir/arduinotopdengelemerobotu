@@ -1,0 +1,58 @@
+# arduinotopdengelemerobotu
+
+#include
+#include
+const int servoPin = 9;
+float Kp = 2.5;b// İlk Oransal Kazanç
+float Ki = 0; // İlk İntegral Kazancı
+float Kd = 1.1; //İlk Türev Kazancı
+double Setpoint, Input, Output, ServoOutput;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+Servo myServo;
+  
+void setup() {
+  
+Serial.begin(9600);
+myServo.attach(servoPin);
+Input = readPosition();
+myPID.SetMode(AUTOMATIC);
+myPID.SetOutputLimits(-80,80); // -80 ile 80 derece arası
+}
+  
+void loop()
+{
+Setpoint = 15; // Denge Noktası
+Input = readPosition();
+  
+myPID.Compute();
+  
+ServoOutput=102+Output;
+myServo.write(ServoOutput);
+}
+  
+float readPosition() {
+delay(40);
+  
+const int pingPin = 7;
+  
+long duration, cm;
+unsigned long now = millis();
+pinMode(pingPin, OUTPUT);
+digitalWrite(pingPin, LOW);
+delayMicroseconds(2);
+digitalWrite(pingPin, HIGH);
+delayMicroseconds(5);
+digitalWrite(pingPin, LOW);
+  
+pinMode(pingPin, INPUT);
+duration = pulseIn(pingPin, HIGH);
+  
+cm = duration/(29*2);
+  
+if(cm > 30) // 30 cm top için maksimum pozisyon
+{cm=30;}
+  
+Serial.println(cm);
+  
+return cm; //Mesafe değerini döndürür.
+}
